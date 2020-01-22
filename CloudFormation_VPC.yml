@@ -1,0 +1,118 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Creates a new VPC for MUMBAI Region and an internet gateway.
+Resources:
+    CICDVPC:
+        Type: "AWS::EC2::VPC"
+        Properties:
+            CidrBlock: "172.32.0.0/16"
+            EnableDnsSupport: 'true'
+            EnableDnsHostnames: 'true'
+            InstanceTenancy: default
+            Tags:
+                -
+                    Key: "purpose"
+                    Value: "CloudFormationJenkinsCICD"
+    CICDInternetGateway:
+        Type: AWS::EC2::InternetGateway
+        Properties:
+            Tags:
+                -
+                    Key: "purpose"
+                    Value: "CloudFormationJenkinsCICD"
+    CICDVPCAttachGateway:
+        Type: AWS::EC2::VPCGatewayAttachment
+        Properties:
+            VpcId: !Ref CICDVPC
+            InternetGatewayId: !Ref CICDInternetGateway
+               
+    JenkinsMasterSubnet:
+        Type: "AWS::EC2::Subnet"
+        Properties:
+            AvailabilityZone: "ap-south-1a"
+            VpcId: !Ref CICDVPC
+            CidrBlock: "172.32.16.0/20"
+            MapPublicIpOnLaunch: true
+            Tags:
+                -
+                    Key: "purpose"
+                    Value: "CloudFormationJenkinsCICD"
+                    
+    JenkinsSlaveSubnet:
+        Type: "AWS::EC2::Subnet"
+        Properties:
+            AvailabilityZone: "ap-south-1b"
+            VpcId: !Ref CICDVPC
+            CidrBlock: "172.32.0.0/20"
+            MapPublicIpOnLaunch: true
+            Tags:
+                -
+                    Key: "purpose"
+                    Value: "CloudFormationJenkinsCICD"
+                    
+    JenkinsSlave2Subnet:
+        Type: "AWS::EC2::Subnet"
+        Properties:
+            AvailabilityZone: "ap-south-1c"
+            VpcId: !Ref CICDVPC
+            CidrBlock: "172.32.32.0/20"
+            MapPublicIpOnLaunch: true
+            Tags:
+                -
+                    Key: "purpose"
+                    Value: "CloudFormationJenkinsCICD" 
+    CICDRouteTable:
+        Type: "AWS::EC2::RouteTable"
+        Properties:
+            VpcId: !Ref CICDVPC
+            Tags:
+                -
+                    Key: "purpose"
+                    Value: "CloudFormationJenkinsCICD"
+                    
+    CICDRoute:
+        Type: "AWS::EC2::Route"
+        DependsOn: CICDVPCAttachGateway
+        Properties:
+            DestinationCidrBlock: 0.0.0.0/0
+            GatewayId: !Ref CICDInternetGateway
+            RouteTableId: !Ref CICDRouteTable
+            
+    JenkinsMasterSubnetRouteTableAssociation:
+        Type: AWS::EC2::SubnetRouteTableAssociation
+        Properties:
+            SubnetId: !Ref JenkinsMasterSubnet
+            RouteTableId: !Ref CICDRouteTable
+                    
+    JenkinsSlaveSubnetRouteTableAssociation:
+        Type: AWS::EC2::SubnetRouteTableAssociation
+        Properties:
+            SubnetId: !Ref JenkinsSlaveSubnet
+            RouteTableId: !Ref CICDRouteTable
+                    
+    JenkinsSlave2SubnetRouteTableAssociation:
+        Type: AWS::EC2::SubnetRouteTableAssociation
+        Properties:
+            SubnetId: !Ref JenkinsSlave2Subnet
+            RouteTableId: !Ref CICDRouteTable
+                    
+    CICDInstanceSecurityGroup:
+        Type: "AWS::EC2::SecurityGroup"
+        Properties:
+            GroupName: "CICD Internet Group"
+            GroupDescription: "Enable SSH access via port 22"
+            VpcId: !Ref CICDVPC
+            SecurityGroupIngress:
+                -
+                    CidrIp: "0.0.0.0/0"
+                    Description: "Allowed from anywhere"
+                    FromPort: "22"
+                    ToPort: "22"
+                    IpProtocol: "tcp"
+            SecurityGroupEgress:
+                -
+                    IpProtocol: -1
+                    CidrIp: "0.0.0.0/0"
+            Tags:
+                -
+                    Key: "purpose"
+                    Value: "CloudFormationJenkinsCICD"

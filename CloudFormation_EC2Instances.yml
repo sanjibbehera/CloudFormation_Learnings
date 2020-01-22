@@ -1,0 +1,59 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Creates 3 Subnets in that VPC for 3 AZs, a Jenkins Master EC2 instance in 1 subnet and a Jenkins Slave instance in another subnet.
+Parameters:
+    KeyName:
+        Description: "Name of an existing EC2 KeyPair to enable SSH access to the instance"
+        Type: "AWS::EC2::KeyPair::KeyName"
+        ConstraintDescription: "must be the name of an existing EC2 KeyPair"
+    MasterSubnetName:
+        Description: "ID of an Master subnet where Master instance will run"
+        Type: "AWS::EC2::Subnet::Id"
+        ConstraintDescription: "must be the name of an existing Subnet"
+    SlaveSubnetName:
+        Description: "ID of an Slave subnet where Slave instance will run"
+        Type: "AWS::EC2::Subnet::Id"
+        ConstraintDescription: "must be the name of an existing Subnet"
+    SecurityGroupName:
+        Description: "ID of an SecurityGroup"
+        Type: "AWS::EC2::SecurityGroup::Id"
+        ConstraintDescription: "must be the name of an existing SecurityGroup"
+Resources:
+    JenkinsMasterEC2Instance:
+        Type: "AWS::EC2::Instance"
+        Properties:
+            ImageId: "ami-0912f71e06545ad88"
+            InstanceType: "t2.micro"
+            SecurityGroupIds:
+                - !Ref SecurityGroupName
+            KeyName: !Ref KeyName
+            SubnetId: !Ref MasterSubnetName
+            Tags:
+                -
+                    Key: "purpose"
+                    Value: "CloudFormationJenkinsCICD"
+                -
+                    Key: "name"
+                    Value: "JenkinsMasterEC2Instance"
+    JenkinsSlaveEC2Instance:
+        Type: "AWS::EC2::Instance"
+        Properties:
+            ImageId: "ami-0912f71e06545ad88"
+            InstanceType: "t2.micro"
+            SecurityGroupIds:
+                - !Ref SecurityGroupName
+            KeyName: !Ref KeyName
+            SubnetId: !Ref SlaveSubnetName
+            Tags:
+                -
+                    Key: "purpose"
+                    Value: "CloudFormationJenkinsCICD"
+                -
+                    Key: "name"
+                    Value: "JenkinsSlaveEC2Instance"
+Outputs:
+    FirstEC2InstanceId:
+        Description: "Instance Id of first EC2 Instance"
+        Value: "JenkinsMasterEC2Instance"
+    SecondEC2InstanceId:
+        Description: "Instance Id of second EC2 Instance"
+        Value: "JenkinsSlaveEC2Instance"
