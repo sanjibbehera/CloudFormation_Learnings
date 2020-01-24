@@ -32,7 +32,7 @@ Resources:
                     Key: "purpose"
                     Value: "CloudFormationJenkinsCICD"
                 -
-                    Key: "name"
+                    Key: "Name"
                     Value: "JenkinsMasterEC2Instance"
     JenkinsSlaveEC2Instance:
         Type: "AWS::EC2::Instance"
@@ -48,7 +48,7 @@ Resources:
                     Key: "purpose"
                     Value: "CloudFormationJenkinsCICD"
                 -
-                    Key: "name"
+                    Key: "Name"
                     Value: "JenkinsSlaveEC2Instance"
 Outputs:
     FirstEC2InstanceId:
